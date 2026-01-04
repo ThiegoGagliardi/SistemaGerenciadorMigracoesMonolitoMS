@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest 
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  app:
+    build:
+      context: .
+      target: debug
+      dockerfile: Dockerfile
+    container_name: MigracaoMonolitoParaMS_app_container
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/src      
+    environment:      
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017 
+      - MongoDbSettings__DatabaseName=MigracaoMonolitoDB
+    depends_on:
+      - mongodb 
+    restart: on-failure
+
+volumes:
+  mongodb_data:

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Projeto de Migração</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 40px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .message.info {
+            background-color: #e2e6ea;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        .project-details, .sub-entity-section {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .project-details p, .sub-entity-section p {
+            margin: 5px 0;
+        }
+        .project-details strong, .sub-entity-section strong {
+            color: #444;
+        }
+        .sub-entity-list {
+            list-style: none;
+            padding: 0;
+        }
+        .sub-entity-list li {
+            background-color: #e9ecef;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border-left: 5px solid #007bff;
+        }
+        .sub-entity-list li:last-child {
+            margin-bottom: 0;
+        }
+        .sub-entity-list li p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Consultar Projeto de Migração</h1>
+
+        <div class="form-group">
+            <input type="text" id="projectIdInput" placeholder="Digite o ID do Projeto de Migração" required>
+            <button id="consultarBtn">Consultar</button>
+        </div>
+
+        <div id="message" class="message info">Aguardando ID do Projeto...</div>
+        <div id="loading" class="loading" style="display: none;">Carregando dados...</div>
+
+        <div id="projectDetailsOutput" class="project-details" style="display: none;">
+            <h2>Detalhes do Projeto</h2>
+            <p><strong>ID:</strong> <span id="projId"></span></p>
+            <p><strong>Nome:</strong> <span id="projNome"></span></p>
+            <p><strong>Descrição:</strong> <span id="projDescricao"></span></p>
+            <p><strong>Status:</strong> <span id="projStatus"></span></p>
+            <p><strong>Responsável:</strong> <span id="projResponsavel"></span></p>
+            <p><strong>Data Início:</strong> <span id="projDataInicio"></span></p>
+            <p><strong>Data Fim Prevista:</strong> <span id="projDataFimPrevista"></span></p>
+            <p><strong>Orçamento Previsto:</strong> <span id="projOrcamentoPrevisto"></span></p>
+            <p><strong>Justificativa:</strong> <span id="projJustificativa"></span></p>
+            <p><strong>Tecnologias Backend:</strong> <span id="projTechBackend"></span></p>
+            <p><strong>Tecnologias Frontend:</strong> <span id="projTechFrontend"></span></p>
+            <p><strong>Estratégia:</strong> <span id="projEstrategia"></span></p>
+        </div>
+
+        <div id="subEntitiesOutput" style="display: none;">
+            <div id="objetivosSection" class="sub-entity-section">
+                <h2>Objetivos de Migração</h2>
+                <ul id="objetivosList" class="sub-entity-list"></ul>
+            </div>
+
+            <div id="dominiosSection" class="sub-entity-section">
+                <h2>Domínios de Negócio</h2>
+                <ul id="dominiosList" class="sub-entity-list"></ul>
+            </div>
+
+            <div id="equipesSection" class="sub-entity-section">
+                <h2>Equipes Envolvidas</h2>
+                <ul id="equipesList" class="sub-entity-list"></ul>
+            </div>
+
+            <div id="membrosSection" class="sub-entity-section">
+                <h2>Membros da Equipe</h2>
+                <ul id="membrosList" class="sub-entity-list"></ul>
+            </div>
+
+            <div id="microservicosSection" class="sub-entity-section">
+                <h2>Microserviços</h2>
+                <ul id="microservicosList" class="sub-entity-list"></ul>
+            </div>
+
+            <div id="metricasSection" class="sub-entity-section">
+                <h2>Métricas Chave</h2>
+                <ul id="metricasList" class="sub-entity-list"></ul>
+            </div>
+
+            <div id="riscosSection" class="sub-entity-section">
+                <h2>Riscos do Projeto</h2>
+                <ul id="riscosList" class="sub-entity-list"></ul>
+            </div>
+
+            <div id="etapasSection" class="sub-entity-section">
+                <h2>Etapas de Migração</h2>
+                <ul id="etapasList" class="sub-entity-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080'; // Altere se sua API estiver em outro endereço
+
+        const projectIdInput = document.getElementById('projectIdInput');
+        const consultarBtn = document.getElementById('consultarBtn');
+        const messageDiv = document.getElementById('message');
+        const loadingDiv = document.getElementById('loading');
+        const projectDetailsOutput = document.getElementById('projectDetailsOutput');
+        const subEntitiesOutput = document.getElementById('subEntitiesOutput');
+
+        consultarBtn.addEventListener('click', fetchProjectData);
+
+        async function fetchProjectData() {
+            const projectId = projectIdInput.value.trim();
+            if (!projectId) {
+                showMessage('Por favor, digite um ID de Projeto.', 'error');
+                return;
+            }
+
+            hideAllOutputs();
+            showMessage('Carregando dados do projeto...', 'info');
+            loadingDiv.style.display = 'block';
+
+            try {
+                // 1. Buscar detalhes do Projeto Principal
+                const projectResponse = await fetch(`${API_BASE_URL}/Projetos/${projectId}`);
+                if (!projectResponse.ok) {
+                    if (projectResponse.status === 404) {
+                        throw new Error('Projeto não encontrado.');
+                    }
+                    throw new Error(`Erro ao buscar projeto: ${projectResponse.status} - ${await projectResponse.text()}`);
+                }
+                const project = await projectResponse.json();
+                renderProjectDetails(project);
+
+                // 2. Buscar todas as sub-entidades em paralelo
+                const subEntityPromises = [];
+
+                // Objetivos
+                if (project.objetivosIds && project.objetivosIds.length > 0) {
+                    subEntityPromises.push(fetchEntitiesByIds(project.objetivosIds, '/ObjetivoMigracao', 'objetivosList', renderObjetivo));
+                } else {
+                    document.getElementById('objetivosList').innerHTML = '<li>Nenhum objetivo encontrado.</li>';
+                }
+
+                // Domínios
+                if (project.dominiosIds && project.dominiosIds.length > 0) {
+                    subEntityPromises.push(fetchEntitiesByIds(project.dominiosIds, '/DominioNegocio', 'dominiosList', renderDominio));
+                } else {
+                    document.getElementById('dominiosList').innerHTML = '<li>Nenhum domínio encontrado.</li>';
+                }
+               
+                // Equipes
+                if (project.equipesEnvolvidasIds && project.equipesEnvolvidasIds.length > 0) {
+                    subEntityPromises.push(fetchEntitiesByIds(project.equipesEnvolvidasIds, '/Equipe', 'equipesList', renderEquipe));
+                } else {
+                    document.getElementById('equipesList').innerHTML = '<li>Nenhuma equipe envolvida.</li>';
+                }
+
+                // Membros (precisa buscar os membros de todas as equipes encontradas)
+                const equipes = await (project.equipesEnvolvidasIds && project.equipesEnvolvidasIds.length > 0
+                    ? Promise.all(project.equipesEnvolvidasIds.map(id => fetch(`${API_BASE_URL}/Equipe/${id}`).then(res => res.json())))
+                    : Promise.resolve([]));
+                const allMembroIds = equipes.flatMap(e => e.membrosIds || []).filter((value, index, self) => self.indexOf(value) === index); // Remove duplicatas
+                if (allMembroIds.length > 0) {
+                    subEntityPromises.push(fetchEntitiesByIds(allMembroIds, '/MembroEquipe', 'membrosList', renderMembro));
+                } else {
+                    document.getElementById('membrosList').innerHTML = '<li>Nenhum membro encontrado.</li>';
+                }
+
+
+                // Microserviços
+                if (project.microservicosIds && project.microservicosIds.length > 0) {
+                    subEntityPromises.push(fetchEntitiesByIds(project.microservicosIds, '/Microservico', 'microservicosList', renderMicroservico));
+                } else {
+                    document.getElementById('microservicosList').innerHTML = '<li>Nenhum microserviço encontrado.</li>';
+                }
+
+                // Métricas Chave
+                if (project.metricasChaveIds && project.metricasChaveIds.length > 0) {
+                    subEntityPromises.push(fetchEntitiesByIds(project.metricasChaveIds, '/MetricaChave', 'metricasList', renderMetricaChave));
+                } else {
+                    document.getElementById('metricasList').innerHTML = '<li>Nenhuma métrica chave encontrada.</li>';
+                }
+
+                // Riscos
+                if (project.riscosIds && project.riscosIds.length > 0) {
+                    subEntityPromises.push(fetchEntitiesByIds(project.riscosIds, '/RiscoProjeto', 'riscosList', renderRiscoProjeto));
+                } else {
+                    document.getElementById('riscosList').innerHTML = '<li>Nenhum risco encontrado.</li>';
+                }
+
+                // Etapas (precisa buscar as etapas de todos os microserviços encontrados)
+                const microservicos = await (project.microservicosIds && project.microservicosIds.length > 0
+                    ? Promise.all(project.microservicosIds.map(id => fetch(`${API_BASE_URL}/Microservico/${id}`).then(res => res.json())))
+                    : Promise.resolve([]));
+                const allEtapaPromises = microservicos.flatMap(ms =>
+                    fetch(`${API_BASE_URL}/EtapaMigracao?microservicoId=${ms.id}`) // Assumindo que você pode filtrar etapas por microservicoId
+                        .then(res => res.json())
+                        .catch(() => [])
+                );
+                const allEtapas = (await Promise.all(allEtapaPromises)).flat();
+                if (allEtapas.length > 0) {
+                    renderList('etapasList', allEtapas, renderEtapaMigracao);
+                } else {
+                    document.getElementById('etapasList').innerHTML = '<li>Nenhuma etapa encontrada.</li>';
+                }
+
+
+                await Promise.all(subEntityPromises); // Espera todas as chamadas de sub-entidades
+               
+                showMessage('Dados do projeto carregados com sucesso!', 'success');
+                projectDetailsOutput.style.display = 'block';
+                subEntitiesOutput.style.display = 'block';
+
+            } catch (error) {
+                showMessage(`Erro: ${error.message}`, 'error');
+                console.error('Erro ao buscar dados do projeto:', error);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // --- Funções Auxiliares ---
+
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+        }
+
+        function hideAllOutputs() {
+            projectDetailsOutput.style.display = 'none';
+            subEntitiesOutput.style.display = 'none';
+            messageDiv.className = 'message';
+            messageDiv.textContent = '';
+        }
+
+        function formatDate(isoString) {
+            if (!isoString) return 'N/A';
+            const date = new Date(isoString);
+            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+        }
+
+        function formatCurrency(value) {
+            if (typeof value !== 'number') return 'N/A';
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        async function fetchEntitiesByIds(ids, endpoint, listElementId, renderFunction) {
+            const listElement = document.getElementById(listElementId);
+            listElement.innerHTML = ''; // Limpa a lista antes de preencher
+
+            if (!ids || ids.length === 0) {
+                listElement.innerHTML = '<li>Nenhum item encontrado.</li>';
+                return;
+            }
+
+            const promises = ids.map(id =>
+                fetch(`${API_BASE_URL}${endpoint}/${id}`)
+                    .then(res => {
+                        if (!res.ok) {
+                            console.error(`Erro ao buscar ${endpoint}/${id}: ${res.status}`);
+                            return null;
+                        }
+                        return res.json();
+                    })
+                    .catch(err => {
+                        console.error(`Erro de rede ao buscar ${endpoint}/${id}:`, err);
+                        return null;
+                    })
+            );
+
+            const entities = (await Promise.all(promises)).filter(e => e !== null);
+            if (entities.length > 0) {
+                renderList(listElementId, entities, renderFunction);
+            } else {
+                listElement.innerHTML = '<li>Nenhum item encontrado ou erro na busca.</li>';
+            }
+        }
+
+        function renderList(listElementId, items, renderFunction) {
+            const listElement = document.getElementById(listElementId);
+            listElement.innerHTML = '';
+            if (items && items.length > 0) {
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = renderFunction(item);
+                    listElement.appendChild(li);
+                });
+            } else {
+                listElement.innerHTML = '<li>Nenhum item encontrado.</li>';
+            }
+        }
+
+
+        // --- Funções de Renderização de Entidades ---
+
+        function renderProjectDetails(project) {
+            document.getElementById('projId').textContent = project.id;
+            document.getElementById('projNome').textContent = project.nome;
+            document.getElementById('projDescricao').textContent = project.descricao;
+            document.getElementById('projStatus').textContent = project.status;
+            document.getElementById('projResponsavel').textContent = project.responsavel;
+            document.getElementById('projDataInicio').textContent = formatDate(project.dataInicio);
+            document.getElementById('projDataFimPrevista').textContent = formatDate(project.dataFimPrevista);
+            document.getElementById('projOrcamentoPrevisto').textContent = formatCurrency(project.orcamentoPrevisto);
+            document.getElementById('projJustificativa').textContent = project.justificativaNegocio;
+            document.getElementById('projTechBackend').textContent = project.tecnologiasBackend ? project.tecnologiasBackend.join(', ') : 'N/A';
+            document.getElementById('projTechFrontend').textContent = project.tecnologiasFrontend ? project.tecnologiasFrontend.join(', ') : 'N/A';
+            document.getElementById('projEstrategia').textContent = project.estrategiaMigracao;
+        }
+
+        function renderObjetivo(obj) {
+            return `
+                <p><strong>ID:</strong> ${obj.id}</p>
+                <p><strong>Título:</strong> ${obj.titulo}</p>
+                <p><strong>Descrição:</strong> ${obj.descricao}</p>
+                <p><strong>Status:</strong> ${obj.status}</p>
+                <p><strong>Prioridade:</strong> ${obj.prioridade}</p>
+            `;
+        }
+
+        function renderDominio(dom) {
+            return `
+                <p><strong>ID:</strong> ${dom.id}</p>
+                <p><strong>Nome:</strong> ${dom.nome}</p>
+                <p><strong>Responsável:</strong> ${dom.responsavelDominio}</p>
+                <p><strong>Status Migração:</strong> ${dom.statusMigracao}</p>
+            `;
+        }
+
+        function renderEquipe(eq) {
+            return `
+                <p><strong>ID:</strong> ${eq.id}</p>
+                <p><strong>Nome:</strong> ${eq.nome}</p>
+                <p><strong>Líder:</strong> ${eq.leadEquipe}</p>
+                <p><strong>Membros IDs:</strong> ${eq.membrosIds ? eq.membrosIds.join(', ') : 'N/A'}</p>
+                <p><strong>MSs Responsáveis IDs:</strong> ${eq.microservicosSobResponsabilidadeIds ? eq.microservicosSobResponsabilidadeIds.join(', ') : 'N/A'}</p>
+            `;
+        }
+
+        function renderMembro(mb) {
+            return `
+                <p><strong>ID:</strong> ${mb.id}</p>
+                <p><strong>Nome:</strong> ${mb.nome}</p>
+                <p><strong>Papel:</strong> ${mb.papel}</p>
+                <p><strong>Email:</strong> ${mb.email}</p>
+            `;
+        }
+
+        function renderMicroservico(ms) {
+            return `
+                <p><strong>ID:</strong> ${ms.id}</p>
+                <p><strong>Nome:</strong> ${ms.nome}</p>
+                <p><strong>Status:</strong> ${ms.status}</p>
+                <p><strong>Equipe Responsável ID:</strong> ${ms.equipeResponsavelId}</p>
+                <p><strong>Tecnologias:</strong> ${ms.tecnologias ? ms.tecnologias.join(', ') : 'N/A'}</p>
+                <p><strong>Etapa Atual:</strong> ${ms.etapaAtualMigracao}</p>
+            `;
+        }
+
+        function renderMetricaChave(mt) {
+            return `
+                <p><strong>ID:</strong> ${mt.id}</p>
+                <p><strong>Nome:</strong> ${mt.nome}</p>
+                <p><strong>Valor Alvo:</strong> ${mt.valorAlvo} ${mt.unidade}</p>
+                <p><strong>Valor Atual:</strong> ${mt.valorAtual} ${mt.unidade}</p>
+                <p><strong>Tendência:</strong> ${mt.tendencia}</p>
+            `;
+        }
+
+        function renderRiscoProjeto(rs) {
+            return `
+                <p><strong>ID:</strong> ${rs.id}</p>
+                <p><strong>Título:</strong> ${rs.titulo}</p>
+                <p><strong>Severidade:</strong> ${rs.severidade}</p>
+                <p><strong>Probabilidade:</strong> ${rs.probabilidade}</p>
+                <p><strong>Status:</strong> ${rs.status}</p>
+            `;
+        }
+
+        function renderEtapaMigracao(et) {
+            return `
+                <p><strong>ID:</strong> ${et.id}</p>
+                <p><strong>Nome da Etapa:</strong> ${et.nomeEtapa}</p>
+                <p><strong>Status:</strong> ${et.status}</p>
+                <p><strong>Data Início:</strong> ${formatDate(et.dataInicio)}</p>
+                <p><strong>Data Fim Prevista:</strong> ${formatDate(et.dataFimPrevista)}</p>
+            `;
+        }
+
+    </script>
+</body>
+</html>
