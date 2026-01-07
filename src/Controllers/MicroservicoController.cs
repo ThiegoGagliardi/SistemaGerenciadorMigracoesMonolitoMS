@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using GerenciamentoMigracaoMonolitoParaMS.app.src.Data;
+using GerenciamentoMigracaoMonolitoParaMS.app.src.DTO;
+using GerenciamentoMigracaoMonolitoParaMS.app.src.Domain.Enum;
 using GerenciamentoMigracaoMonolitoParaMS.app.src.Domain.Entities;
 using MongoDB.Driver;
 
@@ -51,8 +53,37 @@ public class MicroservicoController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post(Microservico novoMicroservico)
+    public async Task<IActionResult> Post(MicroservicoCadastroEnvioDTO novoMicroservicoDTO)
     {
+        Console.WriteLine(novoMicroservicoDTO.Tecnologias);
+
+        Microservico novoMicroservico =  new ()
+        {
+            ProjetoMigracaoId = novoMicroservicoDTO.ProjetoMigracaoId,
+            
+            DominioId = novoMicroservicoDTO.DominioId, 
+            
+            EquipeResponsavelId = novoMicroservicoDTO.EquipeResponsavelId,
+
+            Nome = novoMicroservicoDTO.Nome,
+ 
+            Descricao = novoMicroservicoDTO.Descricao,
+            
+            RepositorioCodigo = novoMicroservicoDTO.RepositorioCodigo,
+           
+            Tecnologias = novoMicroservicoDTO.Tecnologias.Split(',').ToList(),
+
+            Status = (MicroservicoStatus)Enum.Parse(typeof(MicroservicoStatus),  novoMicroservicoDTO.Status, true),
+            
+            EtapaAtualMigracao = novoMicroservicoDTO.EtapaAtualMigracao, 
+            
+            DataPrevisaoConclusao = novoMicroservicoDTO.DataPrevisaoConclusao,
+            
+            DataRealConclusao = novoMicroservicoDTO.DataRealConclusao,
+            
+            Dependencias = novoMicroservicoDTO.Dependencias.Split(',').ToList()
+        };
+
         await _microservicosCollection.InsertOneAsync(novoMicroservico);
         return CreatedAtAction(nameof(Get), new { id = novoMicroservico.Id }, novoMicroservico);
     }
@@ -67,7 +98,7 @@ public class MicroservicoController : ControllerBase
             return NotFound();
         }
 
-        microservicoAtualizado.Id = microservicoExistente.Id; // Garante que o ID não seja alterado
+        microservicoAtualizado.Id = microservicoExistente.Id; 
         await _microservicosCollection.ReplaceOneAsync(ms => ms.Id == id, microservicoAtualizado);
 
         return NoContent();

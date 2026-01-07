@@ -17,7 +17,6 @@ public class Microservico
     [BsonRepresentation(BsonType.ObjectId)]
     public string DominioId { get; set; } = string.Empty;
 
-    // Agora, o microserviço é ligado a uma Equipe
     [BsonRepresentation(BsonType.ObjectId)]
     public string EquipeResponsavelId { get; set; } = string.Empty;
 
@@ -26,11 +25,9 @@ public class Microservico
     public string RepositorioCodigo { get; set; } = string.Empty;
     public List<string> Tecnologias { get; set; } = new List<string>();
     public MicroservicoStatus Status { get; set; }
-    public string EtapaAtualMigracao { get; set; } = string.Empty; // Descrição mais detalhada da etapa
+    public string EtapaAtualMigracao { get; set; } = string.Empty;
     public DateTime DataPrevisaoConclusao { get; set; }
-    public DateTime? DataRealConclusao { get; set; } // Nullable
-    public List<string> Dependencias { get; set; } = new List<string>(); // Outros MS ou serviços externos
-
-    // Referências a Métricas Chave específicas para este microserviço
+    public DateTime? DataRealConclusao { get; set; }
+    public List<string> Dependencias { get; set; } = new List<string>();   
     public List<string> MetricasEspecificasIds { get; set; } = new List<string>();
 }

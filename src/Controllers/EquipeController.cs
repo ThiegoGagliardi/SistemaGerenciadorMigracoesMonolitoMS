@@ -18,8 +18,7 @@ public class EquipeController : ControllerBase
     {
         _equipesCollection = dbContext.Equipes;
     }
-
-    // GET: /Equipe/{id}
+    
     [HttpGet("{id}")]
     public async Task<ActionResult<Equipe>> Get(string id)
     {
@@ -33,15 +32,26 @@ public class EquipeController : ControllerBase
         return equipe;
     }
 
-    // POST: /Equipe
+    [HttpGet]
+    public async Task<ActionResult<List<Equipe>>> Get()
+    {
+        var equipe = await _equipesCollection.Find(projeto => true).ToListAsync();;
+
+        if (equipe == null)
+        {
+            return NotFound();
+        }
+
+        return equipe;
+    }    
+
     [HttpPost]
     public async Task<IActionResult> Post(Equipe novaEquipe)
     {
         await _equipesCollection.InsertOneAsync(novaEquipe);
         return CreatedAtAction(nameof(Get), new { id = novaEquipe.Id }, novaEquipe);
     }
-
-    // PUT: /Equipe/{id}
+    
     [HttpPut("{id}")]
     public async Task<IActionResult> Put(string id, Equipe equipeAtualizada)
     {
@@ -52,13 +62,13 @@ public class EquipeController : ControllerBase
             return NotFound();
         }
 
-        equipeAtualizada.Id = equipeExistente.Id; // Garante que o ID não seja alterado
+        equipeAtualizada.Id = equipeExistente.Id; 
         await _equipesCollection.ReplaceOneAsync(e => e.Id == id, equipeAtualizada);
 
         return NoContent();
     }
 
-    // DELETE: /Equipe/{id}
+    
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {

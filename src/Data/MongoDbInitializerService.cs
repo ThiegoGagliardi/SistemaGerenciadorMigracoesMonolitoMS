@@ -83,7 +83,7 @@ public class MongoDbInitializerService : IHostedService
         await _dbContext.Equipes.Indexes.CreateOneAsync(
             new CreateIndexModel<Equipe>(Builders<Equipe>.IndexKeys.Ascending(e => e.Nome), new CreateIndexOptions { Unique = true }));
         await _dbContext.Equipes.Indexes.CreateOneAsync(
-            new CreateIndexModel<Equipe>(Builders<Equipe>.IndexKeys.Ascending(e => e.LeadEquipe)));
+            new CreateIndexModel<Equipe>(Builders<Equipe>.IndexKeys.Ascending(e => e.LiderEquipe)));
         _logger.LogInformation("Índices para 'Equipes' criados.");
 
         // --- MembroEquipe ---
@@ -117,7 +117,7 @@ public class MongoDbInitializerService : IHostedService
             new CreateIndexModel<EtapaMigracao>(Builders<EtapaMigracao>.IndexKeys.Ascending(e => e.Status)));
         _logger.LogInformation("Índices para 'EtapasMigracao' criados.");
 
-        // --- MetricaChave ---
+        // --- Metrica ---
         await _dbContext.Metricas.Indexes.CreateOneAsync(
             new CreateIndexModel<Metricas>(Builders<Metricas>.IndexKeys.Ascending(m => m.ProjetoMigracaoId)));
         await _dbContext.Metricas.Indexes.CreateOneAsync(

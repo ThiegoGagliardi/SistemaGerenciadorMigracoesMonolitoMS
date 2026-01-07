@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using GerenciamentoMigracaoMonolitoParaMS.app.src.Data;
-using GerenciamentoMigracaoMonolitoParaMS.app.src.Domain.Entities;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using GerenciamentoMigracaoMonolitoParaMS.app.src.Data;
+using GerenciamentoMigracaoMonolitoParaMS.app.src.Domain.Enum;
+using GerenciamentoMigracaoMonolitoParaMS.app.src.Domain.Entities;
+using GerenciamentoMigracaoMonolitoParaMS.app.src.DTO;
 
 namespace GerenciamentoMigracaoMonolitoParaMS.app.src.Controllers;
 
@@ -17,7 +20,6 @@ public class DominioNegocioController : ControllerBase
     {
         _dominiosCollection = dbContext.DominiosNegocio;
     }
-
 
     [HttpGet]
     public async Task<List<DominioNegocio>> Get()
@@ -41,8 +43,18 @@ public class DominioNegocioController : ControllerBase
 
 
     [HttpPost]
-    public async Task<IActionResult> Post(DominioNegocio novoDominio)
+    public async Task<IActionResult> Post(DominioNegocioCadastroEnvioDTO novoDominioDTO)
     {
+        Console.WriteLine(novoDominioDTO.StatusMigracao);
+        DominioNegocio novoDominio = new()
+        {
+            Nome = novoDominioDTO.Nome,
+            ProjetoMigracaoId = novoDominioDTO.ProjetoMigracaoId,
+            Descricao = novoDominioDTO.Descricao,
+            ResponsavelDominio = novoDominioDTO.ResponsavelDominio,
+            StatusMigracao  = (DominioStatusMigracao) Enum.Parse(typeof(DominioStatusMigracao),novoDominioDTO.StatusMigracao,true)
+        };
+
         await _dominiosCollection.InsertOneAsync(novoDominio);
         return CreatedAtAction(nameof(Get), new { id = novoDominio.Id }, novoDominio);
     }

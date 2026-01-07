@@ -38,8 +38,7 @@ public class ProjetoMigracao
     public List<string> ObjetivosIds { get; set; } = new List<string>();
     public List<string> DominiosIds { get; set; } = new List<string>();
     public List<string> MicroservicosIds { get; set; } = new List<string>();
-    public List<string> MetricasChaveIds { get; set; } = new List<string>();
-    public List<string> RiscosIds { get; set; } = new List<string>();
+    public List<string> MetricasIds { get; set; } = new List<string>();
     public List<string> EquipesEnvolvidasIds { get; set; } = new List<string>();
 
 }

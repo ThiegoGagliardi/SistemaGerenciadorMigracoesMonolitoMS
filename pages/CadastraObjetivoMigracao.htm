@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro de Objetivo de Migração</title>
+  <style>
+    body{font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;margin:20px;background:#f4f7f6;color:#333}
+    .container{max-width:900px;margin:0 auto;background:#fff;padding:28px;border-radius:10px;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+    h1{color:#2c3e50;text-align:center;margin:0 0 22px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .form-group{margin-bottom:12px}
+    label{display:block;margin-bottom:6px;font-weight:700;color:#555}
+    input[type="text"],input[type="date"],textarea,select{
+      width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;font-size:1em;box-sizing:border-box
+    }
+    textarea{resize:vertical;min-height:90px}
+    .full{grid-column:1 / -1}
+    button{
+      background:#007bff;color:#fff;padding:12px 18px;border:0;border-radius:6px;cursor:pointer;
+      font-size:1.05em;width:100%;transition:background .2s ease
+    }
+    button:hover{background:#0056b3}
+    .message{margin-top:14px;padding:10px;border-radius:6px;text-align:center;font-weight:700}
+    .message.success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+    .message.error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+    .hint{font-size:.9em;color:#666;margin-top:6px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cadastrar Objetivo de Migração</h1>
+
+    <form id="cadastroForm">
+      <div class="grid">
+        <div class="form-group full">
+          <label for="projetoMigracaoId">ID do Projeto de Migração</label>
+          <input type="text" id="projetoMigracaoId" placeholder="Cole aqui o ID do Projeto" required />
+          <div class="hint">Dica: se você abrir esta página com <strong>?projectId=...</strong>, este campo é preenchido automaticamente.</div>
+        </div>
+
+        <div class="form-group full">
+          <label for="titulo">Título</label>
+          <input type="text" id="titulo" placeholder="Ex: Reduzir latência em 30%" required />
+        </div>
+
+        <div class="form-group full">
+          <label for="descricao">Descrição</label>
+          <textarea id="descricao" placeholder="Descreva o objetivo e o critério de sucesso..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="tipo">Tipo</label>
+          <select id="tipo" required>
+            <option value="Performance">Performance</option>
+            <option value="Escalabilidade">Escalabilidade</option>
+            <option value="Custo">Custo</option>
+            <option value="Agilidade">Agilidade</option>
+            <option value="Seguranca">Segurança</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="prioridade">Prioridade</label>
+          <select id="prioridade" required>
+            <option value="Alta">Alta</option>
+            <option value="Media">Média</option>
+            <option value="Baixa">Baixa</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" required>
+            <option value="Aberto">Aberto</option>
+            <option value="EmProgresso">Em Progresso</option>
+            <option value="Concluido">Concluído</option>
+            <option value="Atrasado">Atrasado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="dataAlvo">Data Alvo</label>
+          <input type="date" id="dataAlvo" required />
+        </div>
+
+        <div class="form-group full">
+          <label for="progressoAtual">Progresso Atual (opcional)</label>
+          <textarea id="progressoAtual" placeholder="Ex: Análise de gargalos concluída; iniciando otimização..."></textarea>
+        </div>
+
+        <div class="form-group full">
+          <button type="submit">Cadastrar Objetivo</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="message" class="message" style="display:none;"></div>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:8080';
+    const ENDPOINT = '/ObjetivoMigracao';
+
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      el.style.display = 'block';
+      el.className = 'message ' + type;
+      el.textContent = text;
+    }
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || '';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const projectId = getQueryParam('projectId');
+      if (projectId) document.getElementById('projetoMigracaoId').value = projectId;
+
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('dataAlvo').value = `${yyyy}-${mm}-${dd}`;
+    });
+
+    document.getElementById('cadastroForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const projetoMigracaoId = document.getElementById('projetoMigracaoId').value.trim();
+      const titulo = document.getElementById('titulo').value.trim();
+      const descricao = document.getElementById('descricao').value.trim();
+      const tipo = document.getElementById('tipo').value;
+      const prioridade = document.getElementById('prioridade').value;
+      const status = document.getElementById('status').value;
+      const dataAlvo = document.getElementById('dataAlvo').value;
+      const progressoAtual = document.getElementById('progressoAtual').value.trim();
+
+      const payload = {
+        projetoMigracaoId,
+        titulo,
+        descricao,
+        tipo,
+        prioridade,
+        status,
+        dataAlvo: new Date(dataAlvo).toISOString(),
+        progressoAtual
+      };
+
+      try {
+        showMessage('Enviando...', 'success');
+
+        const resp = await fetch(`${API_BASE_URL}${ENDPOINT}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          showMessage(`Erro ao cadastrar: ${resp.status} - ${txt}`, 'error');
+          return;
+        }
+
+        const result = await resp.json();
+        showMessage(`Objetivo "${result.titulo}" cadastrado com sucesso! ID: ${result.id}`, 'success');
+
+        // Limpa, mantendo o projetoMigracaoId para facilitar cadastros em sequência
+        document.getElementById('cadastroForm').reset();
+        document.getElementById('projetoMigracaoId').value = projetoMigracaoId;
+      } catch (err) {
+        showMessage(`Erro de conexão: ${err.message}`, 'error');
+      }
+    });
+  </script>
+</body>
+</html>

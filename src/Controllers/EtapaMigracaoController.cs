@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using GerenciamentoMigracaoMonolitoParaMS.app.src.Data;
 using GerenciamentoMigracaoMonolitoParaMS.app.src.Domain.Entities;
+using GerenciamentoMigracaoMonolitoParaMS.app.src.Domain.Enum;
+using GerenciamentoMigracaoMonolitoParaMS.app.src.DTO;
 using MongoDB.Driver;
 
 namespace GerenciamentoMigracaoMonolitoParaMS.app.src.Controllers;
@@ -36,8 +38,19 @@ public class EtapaMigracaoController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post(EtapaMigracao novaEtapa)
+    public async Task<IActionResult> Post(EtapaMigracaoCadastroEnvioDTO EtapaDTO)
     {
+        EtapaMigracao novaEtapa = new()
+        {
+            MicroservicoId = EtapaDTO.MicroservicoId, 
+            NomeEtapa  = EtapaDTO.NomeEtapa,
+            DataInicio  = EtapaDTO.DataInicio,
+            DataFimPrevista = EtapaDTO.DataFimPrevista, 
+                        
+            Status = (EtapaStatus)Enum.Parse(typeof(EtapaStatus),EtapaDTO.Status,true),
+            Observacoes = EtapaDTO.Observacoes
+        };
+
         await _etapasCollection.InsertOneAsync(novaEtapa);
         return CreatedAtAction(nameof(Get), new { id = novaEtapa.Id }, novaEtapa);
     }

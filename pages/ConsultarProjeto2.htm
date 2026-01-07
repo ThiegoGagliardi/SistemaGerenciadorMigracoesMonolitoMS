@@ -108,6 +108,29 @@
         .sub-entity-list li p {
             margin: 0;
         }
+        .quick-actions {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e0f7fa;
+            border: 1px solid #b2ebf2;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .quick-actions h2 {
+            color: #00796b;
+            margin-bottom: 15px;
+            border-bottom: none;
+        }
+        .quick-actions .action-buttons button {
+            background-color: #00bcd4;
+            width: auto;
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 0.95em;
+        }
+        .quick-actions .action-buttons button:hover {
+            background-color: #0097a7;
+        }
     </style>
 </head>
 <body>
@@ -134,9 +157,22 @@
             <p><strong>Orçamento Previsto:</strong> <span id="projOrcamentoPrevisto"></span></p>
             <p><strong>Justificativa:</strong> <span id="projJustificativa"></span></p>
             <p><strong>Tecnologias Backend:</strong> <span id="projTechBackend"></span></p>
-            <p><strong>Tecnologias Frontend:</strong> <span id="projTechFrontend"></span></p>
-            <p><strong>Estratégia:</strong> <span id="projEstrategia"></span></p>
+            <p><strong>Tecnologias Frontend:</strong> <span id="projTechFrontend"></span></p>            
         </div>
+
+        <!-- Nova seção de Ações Rápidas -->
+        <div id="quickActionsSection" class="quick-actions" style="display: none;">
+            <h2>Ações Rápidas para este Projeto</h2>
+            <div class="action-buttons">
+                <button id="btnCadastrarDominio">Cadastrar Domínio</button>
+                <button id="btnCadastrarEquipe">Cadastrar Equipe</button>                
+                <button id="btnCadastrarMicroservico">Cadastrar Microserviço</button>
+                <button id="btnCadastrarObjetivo">Cadastrar Objetivo</button>
+                <button id="btnCadastrarMetrica">Cadastrar Métrica</button>
+                <button id="btnCadastrarEtapa">Cadastrar Etapa</button>
+            </div>
+        </div>
+        <!-- Fim da nova seção -->
 
         <div id="subEntitiesOutput" style="display: none;">
             <div id="objetivosSection" class="sub-entity-section">
@@ -165,7 +201,7 @@
             </div>
 
             <div id="metricasSection" class="sub-entity-section">
-                <h2>Métricas Chave</h2>
+                <h2>Métricas</h2>
                 <ul id="metricasList" class="sub-entity-list"></ul>
             </div>
 
@@ -185,8 +221,29 @@
         const loadingDiv = document.getElementById('loading');
         const projectDetailsOutput = document.getElementById('projectDetailsOutput');
         const subEntitiesOutput = document.getElementById('subEntitiesOutput');
+        const quickActionsSection = document.getElementById('quickActionsSection');
+
+        let currentProjectId = null; 
 
         consultarBtn.addEventListener('click', fetchProjectData);
+
+        // Event Listeners para os novos botões
+        document.getElementById('btnCadastrarDominio').addEventListener('click', () => openCadastroPage('CadastraDominioNegocio.htm'));
+        document.getElementById('btnCadastrarEquipe').addEventListener('click', () => openCadastroPage('CadastroEquipe.htm'));        
+        document.getElementById('btnCadastrarMicroservico').addEventListener('click', () => openCadastroPage('CadastroMicrosservicos.htm'));
+        document.getElementById('btnCadastrarObjetivo').addEventListener('click', () => openCadastroPage('CadastraObjetivoMigracao.htm'));
+        document.getElementById('btnCadastrarMetrica').addEventListener('click', () => openCadastroPage('CadastraMetrica.htm'));
+        document.getElementById('btnCadastrarEtapa').addEventListener('click', () => openCadastroPage('CadastrarEtapaMigracao.htm'));
+
+
+        function openCadastroPage(pageName) {
+            if (currentProjectId) {
+                window.open(`${pageName}?projectId=${currentProjectId}`, '_blank');
+            } else {
+                showMessage('Consulte um projeto primeiro para habilitar esta ação.', 'error');
+            }
+        }
+
 
         async function fetchProjectData() {
             const projectId = projectIdInput.value.trim();
@@ -194,8 +251,8 @@
                 showMessage('Por favor, digite um ID de Projeto.', 'error');
                 return;
             }
-			console.log(`${projectId}`)
-			console.log(`${API_BASE_URL}/Projetos/${projectId}`)
+
+            currentProjectId = projectId;
 
             hideAllOutputs();
             showMessage('Carregando dados do projeto...', 'info');
@@ -203,7 +260,6 @@
 
             try {
                 // 1. Buscar detalhes do Projeto Principal
-				
                 const projectResponse = await fetch(`${API_BASE_URL}/Projetos/${projectId}`);
                 if (!projectResponse.ok) {
                     if (projectResponse.status === 404) {
@@ -265,15 +321,27 @@
                 }
 
                 // Etapas (precisa buscar as etapas de todos os microserviços encontrados)
+                // Nota: Este trecho assume que o endpoint /EtapaMigracao pode aceitar um filtro por microservicoId.
+                // Se o seu controller de EtapaMigracao não tiver um endpoint para buscar por microservicoId,
+                // você precisará ajustar esta lógica para buscar todas as etapas e depois filtrar no cliente.
                 const microservicos = await (project.microservicosIds && project.microservicosIds.length > 0
                     ? Promise.all(project.microservicosIds.map(id => fetch(`${API_BASE_URL}/Microservico/${id}`).then(res => res.json())))
                     : Promise.resolve([]));
-                const allEtapaPromises = microservicos.flatMap(ms =>
-                    fetch(`${API_BASE_URL}/EtapaMigracao?microservicoId=${ms.id}`) // Assumindo que você pode filtrar etapas por microservicoId
-                        .then(res => res.json())
-                        .catch(() => [])
-                );
-                const allEtapas = (await Promise.all(allEtapaPromises)).flat();
+               
+                let allEtapas = [];
+                if (microservicos.length > 0) {
+                    // Para cada microserviço, busca suas etapas
+                    const etapaPromises = microservicos.map(ms =>
+                        fetch(`${API_BASE_URL}/EtapaMigracao?microservicoId=${ms.id}`)
+                            .then(res => res.ok ? res.json() : [])
+                            .catch(err => {
+                                console.error(`Erro ao buscar etapas para MS ${ms.id}:`, err);
+                                return [];
+                            })
+                    );
+                    allEtapas = (await Promise.all(etapaPromises)).flat();
+                }
+
                 if (allEtapas.length > 0) {
                     renderList('etapasList', allEtapas, renderEtapaMigracao);
                 } else {
@@ -281,21 +349,22 @@
                 }
 
 
-                await Promise.all(subEntityPromises); // Espera todas as chamadas de sub-entidades
+                await Promise.all(subEntityPromises);
                
                 showMessage('Dados do projeto carregados com sucesso!', 'success');
                 projectDetailsOutput.style.display = 'block';
                 subEntitiesOutput.style.display = 'block';
+                quickActionsSection.style.display = 'block';
 
             } catch (error) {
                 showMessage(`Erro: ${error.message}`, 'error');
                 console.error('Erro ao buscar dados do projeto:', error);
+                currentProjectId = null; 
             } finally {
                 loadingDiv.style.display = 'none';
             }
         }
 
-        // --- Funções Auxiliares ---
 
         function showMessage(text, type) {
             messageDiv.textContent = text;
@@ -305,6 +374,7 @@
         function hideAllOutputs() {
             projectDetailsOutput.style.display = 'none';
             subEntitiesOutput.style.display = 'none';
+            quickActionsSection.style.display = 'none';
             messageDiv.className = 'message';
             messageDiv.textContent = '';
         }
@@ -366,22 +436,21 @@
             }
         }
 
-
-        // --- Funções de Renderização de Entidades ---
-
+        // --- Funções de Renderização de Entidades ---       
         function renderProjectDetails(project) {
+            console.log(project)
+           
             document.getElementById('projId').textContent = project.id;
             document.getElementById('projNome').textContent = project.nome;
             document.getElementById('projDescricao').textContent = project.descricao;
             document.getElementById('projStatus').textContent = project.status;
             document.getElementById('projResponsavel').textContent = project.responsavel;
             document.getElementById('projDataInicio').textContent = formatDate(project.dataInicio);
-            document.getElementById('projDataFimPrevista').textContent = formatDate(project.dataFimPrevista);
+            document.getElementById('projDataFimPrevista').textContent = formatDate(project.dataFimPrevisto);
             document.getElementById('projOrcamentoPrevisto').textContent = formatCurrency(project.orcamentoPrevisto);
             document.getElementById('projJustificativa').textContent = project.justificativaNegocio;
-            document.getElementById('projTechBackend').textContent = project.tecnologiasBackend ? project.tecnologiasBackend.join(', ') : 'N/A';
-            document.getElementById('projTechFrontend').textContent = project.tecnologiasFrontend ? project.tecnologiasFrontend.join(', ') : 'N/A';
-            document.getElementById('projEstrategia').textContent = project.estrategiaMigracao;
+            document.getElementById('projTechBackend').textContent = project.tecnologiasBackend ? project.tecnologiasBackend : 'N/A';
+            document.getElementById('projTechFrontend').textContent = project.tecnologiasFrontend ? project.tecnologiasFrontend : 'N/A';            
         }
 
         function renderObjetivo(obj) {

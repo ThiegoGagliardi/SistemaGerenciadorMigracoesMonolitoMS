@@ -41,7 +41,7 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
 
 builder.Services.AddSingleton<IMigracaoMonolitoParaMSDBContext, MigracaoMonolitoParaMSDBContext>();
 
-builder.Services.AddHostedService<MongoDbInitializerService>();
+// builder.Services.AddHostedService<MongoDbInitializerService>();
 
 builder.Services.AddControllers();
 
@@ -53,12 +53,11 @@ var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins, builder =>
+    options.AddPolicy(name: MyAllowSpecificOrigins, policy =>
                         {
-                            builder.WithOrigins("http://localhost:8080", // Se o seu frontend for servido de outro lugar, adicione aqui
-                                                "http://127.0.0.1:5500") // Exemplo se estiver usando Live Server do VS Code
-                                    .AllowAnyHeader()
-                                    .AllowAnyMethod();
+                            policy.AllowAnyOrigin()
+                                  .AllowAnyHeader()
+                                  .AllowAnyMethod();
                         });
 });
 
@@ -74,7 +73,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

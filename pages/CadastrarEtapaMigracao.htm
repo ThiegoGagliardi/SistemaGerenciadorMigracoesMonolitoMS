@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Projeto de Migração</title>
+    <title>Cadastro de Etapa de Migração</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -46,10 +46,10 @@
         }
         textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 60px;
         }
         button {
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
             padding: 12px 20px;
             border: none;
@@ -60,7 +60,7 @@
             transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #218838;
+            background-color: #0056b3;
         }
         .message {
             margin-top: 20px;
@@ -83,17 +83,17 @@
 </head>
 <body>
     <div class="container">
-        <h1>Cadastrar Novo Projeto de Migração</h1>
+        <h1>Cadastrar Nova Etapa de Migração</h1>
 
-        <form id="cadastroProjetoForm">
+        <form id="cadastroForm">
             <div class="form-group">
-                <label for="nome">Nome do Projeto:</label>
-                <input type="text" id="nome" required>
+                <label for="microservicoId">ID do Microserviço:</label>
+                <input type="text" id="microservicoId" placeholder="ID do Microserviço" required>
             </div>
 
             <div class="form-group">
-                <label for="descricao">Descrição:</label>
-                <textarea id="descricao" required></textarea>
+                <label for="nomeEtapa">Nome da Etapa:</label>
+                <input type="text" id="nomeEtapa" required>
             </div>
 
             <div class="form-group">
@@ -107,91 +107,79 @@
             </div>
 
             <div class="form-group">
-                <label for="responsavel">Responsável:</label>
-                <input type="text" id="responsavel" required>
+                <label for="status">Status:</label>
+                <select id="status" required>
+                    <option value="Pendente">Pendente</option>
+                    <option value="EmProgresso">Em Progresso</option>
+                    <option value="Concluida">Concluída</option>
+                    <option value="Atrasada">Atrasada</option>
+                </select>
             </div>
 
             <div class="form-group">
-                <label for="orcamentoPrevisto">Orçamento Previsto:</label>
-                <input type="number" id="orcamentoPrevisto" step="0.01" required>
+                <label for="observacoes">Observações:</label>
+                <textarea id="observacoes"></textarea>
             </div>
 
-            <div class="form-group">
-                <label for="justificativaNegocio">Justificativa de Negócio:</label>
-                <textarea id="justificativaNegocio" required></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="tecnologiasBackend">Tecnologias Backend (separadas por vírgula):</label>
-                <input type="text" id="tecnologiasBackend" value="C#,MongoDB">
-            </div>
-
-            <div class="form-group">
-                <label for="tecnologiasFrontend">Tecnologias Frontend (separadas por vírgula):</label>
-                <input type="text" id="tecnologiasFrontend" value="JavaScript,HTML">
-            </div>
-
-            <button type="submit">Cadastrar Projeto</button>
+            <button type="submit">Cadastrar Etapa</button>
         </form>
 
         <div id="message" class="message"></div>
     </div>
 
     <script>
-        document.getElementById('cadastroProjetoForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Previne o comportamento padrão do formulário
+        const API_BASE_URL = 'http://localhost:8080';
+        const ENDPOINT = '/EtapaMigracao';
+
+        document.getElementById('cadastroForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
 
             const messageDiv = document.getElementById('message');
             messageDiv.className = 'message';
             messageDiv.textContent = 'Enviando...';
 
             // Coleta os dados do formulário
-            const nome = document.getElementById('nome').value;
-            const descricao = document.getElementById('descricao').value;
+            const microservicoId = document.getElementById('microservicoId').value;
+            const nomeEtapa = document.getElementById('nomeEtapa').value;
             const dataInicio = document.getElementById('dataInicio').value;
             const dataFimPrevista = document.getElementById('dataFimPrevista').value;
-            const responsavel = document.getElementById('responsavel').value;
-            const orcamentoPrevisto = parseFloat(document.getElementById('orcamentoPrevisto').value);
-            const justificativaNegocio = document.getElementById('justificativaNegocio').value;
-            const tecnologiasBackend = document.getElementById('tecnologiasBackend').value.split(',').map(t => t.trim()).filter(t => t);
-            const tecnologiasFrontend = document.getElementById('tecnologiasFrontend').value.split(',').map(t => t.trim()).filter(t => t);
-            
-            const projetoData = {
-                nome: nome,
-                descricao: descricao,
+            const status = document.getElementById('status').value;
+            const observacoes = document.getElementById('observacoes').value;
+
+            const data = {
+                microservicoId: microservicoId,
+                nomeEtapa: nomeEtapa,
                 dataInicio: new Date(dataInicio).toISOString(),
-                dataFimPrevisto: new Date(dataFimPrevista).toISOString(),
-                status: "Planejamento", 
-                responsavel: responsavel,
-                orcamentoPrevisto: orcamentoPrevisto,
-                orcamentoGasto: 0, 
-                justificativaNegocio: justificativaNegocio,
-                tecnologiasBackend: tecnologiasBackend,
-                tecnologiasFrontend: tecnologiasFrontend,            
+                dataFimPrevista: new Date(dataFimPrevista).toISOString(),
+                status: status,
+                observacoes: observacoes
             };
 
             try {
-                const response = await fetch('http://localhost:8080/Projetos', {
+                const response = await fetch(`${API_BASE_URL}${ENDPOINT}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(projetoData)
+                    body: JSON.stringify(data)
                 });
 
                 if (response.ok) {
                     const result = await response.json();
                     messageDiv.classList.add('success');
-                    messageDiv.textContent = `Projeto "${result.nome}" cadastrado com sucesso! ID: ${result.id}`;
-                    document.getElementById('cadastroProjetoForm').reset(); // Limpa o formulário
+                    messageDiv.textContent = `Etapa "${result.nomeEtapa}" cadastrada com sucesso! ID: ${result.id}`;
+                    document.getElementById('cadastroForm').reset();
+                    // Opcional: pré-preencher o MicroservicoId para facilitar cadastros sequenciais
+                    document.getElementById('microservicoId').value = microservicoId;
                 } else {
                     const errorText = await response.text();
                     messageDiv.classList.add('error');
-                    messageDiv.textContent = `Erro ao cadastrar projeto: ${response.status} - ${errorText}`;
+                    messageDiv.textContent = `Erro ao cadastrar: ${response.status} - ${errorText}`;
+                    console.error('Erro na resposta da API:', errorText);
                 }
             } catch (error) {
                 messageDiv.classList.add('error');
-                messageDiv.textContent = `Erro de conexão: ${error.message}. Verifique se a API está rodando em http://localhost:8080.`;
+                messageDiv.textContent = `Erro de conexão: ${error.message}. Verifique se a API está rodando em ${API_BASE_URL}.`;
                 console.error('Erro na requisição:', error);
             }
         });

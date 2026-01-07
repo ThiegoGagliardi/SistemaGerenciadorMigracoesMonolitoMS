@@ -13,12 +13,10 @@ public class EtapaMigracao
 
     [BsonRepresentation(BsonType.ObjectId)]
     public string MicroservicoId { get; set; } = string.Empty;
-
     public string NomeEtapa { get; set; } = string.Empty;
     public DateTime DataInicio { get; set; }
     public DateTime DataFimPrevista { get; set; }
-    public DateTime? DataFimReal { get; set; }
+    public DateTime? DataFimEfetiva { get; set; }
     public EtapaStatus Status { get; set; }
     public string Observacoes { get; set; } = string.Empty;
-
 }

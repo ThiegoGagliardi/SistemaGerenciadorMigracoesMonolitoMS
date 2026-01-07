@@ -16,7 +16,7 @@ public class Equipe
 
     public string Nome { get; set; } = string.Empty;
     public string Descricao { get; set; } = string.Empty;
-    public string LeadEquipe { get; set; } = string.Empty;
+    public string LiderEquipe { get; set; } = string.Empty;
     public List<string> MembrosIds { get; set; } = new List<string>();
     public List<string> MicroservicosSobResponsabilidadeIds { get; set; } = new List<string>();
 }

@@ -1,12 +1,9 @@
-htm
-Thiego Gagliardi<thiego@cslog.com.br>
-​thiegogagliardi@hotmail.com​
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Domínio de Negócio</title>
+    <title>Cadastro de Equipe</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -37,7 +34,6 @@ Thiego Gagliardi<thiego@cslog.com.br>
             color: #555;
         }
         input[type="text"],
-        input[type="date"],
         textarea,
         select {
             width: calc(100% - 22px); /* Ajuste para padding e border */
@@ -86,7 +82,7 @@ Thiego Gagliardi<thiego@cslog.com.br>
 </head>
 <body>
     <div class="container">
-        <h1>Cadastrar Novo Domínio de Negócio</h1>
+        <h1>Cadastrar Nova Equipe</h1>
 
         <form id="cadastroForm">
             <div class="form-group">
@@ -95,7 +91,7 @@ Thiego Gagliardi<thiego@cslog.com.br>
             </div>
 
             <div class="form-group">
-                <label for="nome">Nome do Domínio:</label>
+                <label for="nome">Nome da Equipe:</label>
                 <input type="text" id="nome" required>
             </div>
 
@@ -105,29 +101,25 @@ Thiego Gagliardi<thiego@cslog.com.br>
             </div>
 
             <div class="form-group">
-                <label for="responsavelDominio">Responsável pelo Domínio:</label>
-                <input type="text" id="responsavelDominio" required>
+                <label for="leadEquipe">Líder da Equipe (Nome ou ID):</label>
+                <input type="text" id="leadEquipe" required>
             </div>
+           
+            <!-- MembrosIds e MicroservicosSobResponsabilidadeIds serão vazios na criação e preenchidos via PUT/outras telas -->
 
-            <div class="form-group">
-                <label for="statusMigracao">Status da Migração:</label>
-                <select id="statusMigracao" required>
-                    <option value="Identificado">Identificado</option>
-                    <option value="EmAnalise">Em Análise</option>
-                    <option value="EmMigracao">Em Migração</option>
-                    <option value="Migrado">Migrado</option>
-                </select>
-            </div>
-
-            <button type="submit">Cadastrar Domínio</button>
+            <button type="submit">Cadastrar Equipe</button>
         </form>
 
         <div id="message" class="message"></div>
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:8080'; // Altere se sua API estiver em outro endereço
-        const ENDPOINT = '/DominioNegocio'; // Endpoint específico para esta entidade
+        const API_BASE_URL = 'http://localhost:8080';
+        const ENDPOINT = '/Equipe';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('projectId');
+        document.getElementById('projetoMigracaoId').value = id;
 
         document.getElementById('cadastroForm').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -140,15 +132,15 @@ Thiego Gagliardi<thiego@cslog.com.br>
             const projetoMigracaoId = document.getElementById('projetoMigracaoId').value;
             const nome = document.getElementById('nome').value;
             const descricao = document.getElementById('descricao').value;
-            const responsavelDominio = document.getElementById('responsavelDominio').value;
-            const statusMigracao = document.getElementById('statusMigracao').value;
+            const leadEquipe = document.getElementById('leadEquipe').value;
 
             const data = {
                 projetoMigracaoId: projetoMigracaoId,
                 nome: nome,
                 descricao: descricao,
-                responsavelDominio: responsavelDominio,
-                statusMigracao: statusMigracao
+                leadEquipe: leadEquipe,
+                membrosIds: [],
+                microservicosSobResponsabilidadeIds: []
             };
 
             try {
@@ -163,7 +155,7 @@ Thiego Gagliardi<thiego@cslog.com.br>
                 if (response.ok) {
                     const result = await response.json();
                     messageDiv.classList.add('success');
-                    messageDiv.textContent = `Domínio "${result.nome}" cadastrado com sucesso! ID: ${result.id}`;
+                    messageDiv.textContent = `Equipe "${result.nome}" cadastrada com sucesso! ID: ${result.id}`;
                     document.getElementById('cadastroForm').reset();
                     // Opcional: pré-preencher o ProjetoMigracaoId para facilitar cadastros sequenciais
                     document.getElementById('projetoMigracaoId').value = projetoMigracaoId;

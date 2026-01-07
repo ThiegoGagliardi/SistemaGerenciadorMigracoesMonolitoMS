@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Equipe</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        textarea,
+        select {
+            width: calc(100% - 22px); /* Ajuste para padding e border */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box; /* Garante que padding e border não aumentem a largura */
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cadastrar Nova Equipe</h1>
+
+        <form id="cadastroForm">
+            <div class="form-group">
+                <label for="projetoMigracaoId">ID do Projeto de Migração:</label>
+                <input type="text" id="projetoMigracaoId" placeholder="ID do Projeto Principal" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nome">Nome da Equipe:</label>
+                <input type="text" id="nome" required>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao">Descrição:</label>
+                <textarea id="descricao" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="leadEquipe">Líder da Equipe (Nome ou ID):</label>
+                <input type="text" id="leadEquipe" required>
+            </div>
+           
+            <!-- MembrosIds e MicroservicosSobResponsabilidadeIds serão vazios na criação e preenchidos via PUT/outras telas -->
+
+            <button type="submit">Cadastrar Equipe</button>
+        </form>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080';
+        const ENDPOINT = '/Equipe'; 
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('projectId');
+        document.getElementById('projetoMigracaoId').value = id;
+
+        document.getElementById('cadastroForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message';
+            messageDiv.textContent = 'Enviando...';
+
+            // Coleta os dados do formulário
+            const projetoMigracaoId = document.getElementById('projetoMigracaoId').value;
+            const nome = document.getElementById('nome').value;
+            const descricao = document.getElementById('descricao').value;
+            const leadEquipe = document.getElementById('leadEquipe').value;
+
+            const data = {
+                projetoMigracaoId: projetoMigracaoId,
+                nome: nome,
+                descricao: descricao,
+                leadEquipe: leadEquipe,
+                membrosIds: [], // Inicialmente vazia
+                microservicosSobResponsabilidadeIds: [] // Inicialmente vazia
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}${ENDPOINT}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    messageDiv.classList.add('success');
+                    messageDiv.textContent = `Equipe "${result.nome}" cadastrada com sucesso! ID: ${result.id}`;
+                    document.getElementById('cadastroForm').reset();
+                    // Opcional: pré-preencher o ProjetoMigracaoId para facilitar cadastros sequenciais
+                    document.getElementById('projetoMigracaoId').value = projetoMigracaoId;
+                } else {
+                    const errorText = await response.text();
+                    messageDiv.classList.add('error');
+                    messageDiv.textContent = `Erro ao cadastrar: ${response.status} - ${errorText}`;
+                    console.error('Erro na resposta da API:', errorText);
+                }
+            } catch (error) {
+                messageDiv.classList.add('error');
+                messageDiv.textContent = `Erro de conexão: ${error.message}. Verifique se a API está rodando em ${API_BASE_URL}.`;
+                console.error('Erro na requisição:', error);
+            }
+        });
+    </script>
+</body>
+</html>

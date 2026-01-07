@@ -7,14 +7,15 @@ namespace GerenciamentoMigracaoMonolitoParaMS.app.src.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class MetricaChaveController : ControllerBase
+public class MetricasController : ControllerBase
 {
 private readonly IMongoCollection<Metricas> _metricasCollection;
 
-        public MetricaChaveController(IMigracaoMonolitoParaMSDBContext dbContext)
+        public MetricasController(IMigracaoMonolitoParaMSDBContext dbContext)
         {
             _metricasCollection = dbContext.Metricas;
         }
+        
         [HttpGet]
         public async Task<List<Metricas>> Get()
         {
